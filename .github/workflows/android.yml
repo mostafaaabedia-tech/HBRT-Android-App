@@ -1,4 +1,4 @@
-name: Build HBRT Android App
+name: Build HBRT App
 on:
   push:
     branches:
@@ -11,36 +11,41 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
           
-      - name: Setup Java 17
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
           
-      - name: Install Cordova
-        run: npm install -g cordova
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
         
-      - name: Create Project & Add Platform
+      - name: Install Capacitor
         run: |
-          cordova create hbrt com.hbrt.agro "HBRT AGRO"
-          cp index.html hbrt/www/index.html
-          cp config.xml hbrt/config.xml
-          cd hbrt
-          cordova platform add android
-          cordova plugin add cordova-plugin-whitelist
+          npm init -y
+          npm install @capacitor/core @capacitor/cli @capacitor/android
           
-      - name: Build Debug APK
+      - name: Init & Add Android
         run: |
-          cd hbrt
-          cordova build android --debug
+          npx cap init HBRT com.hbrt.agro --web-dir=www
+          npx cap add android
+          
+      - name: Force Allow Cleartext Traffic (ws:// fix)
+        run: sed -i 's/<application/<application android:usesCleartextTraffic="true"/' android/app/src/main/AndroidManifest.xml
+        
+      - name: Build APK
+        run: |
+          npx cap copy
+          cd android
+          ./gradlew assembleDebug --no-daemon
           
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: HBRT-AGRO-App
-          path: hbrt/platforms/android/app/build/outputs/apk/debug/app-debug.apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
