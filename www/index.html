@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>HBRT AGRO</title>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
         :root { --bg:#0b1410; --card:rgba(18,31,26,0.8); --border:#1f3a2c; --neon:#39FF14; --orange:#FF8C00; --text:#E0E0E0; --muted:#7A9080; --danger:#FF4C4C; }
         * { box-sizing:border-box; margin:0; padding:0; font-family:'Space Grotesk',sans-serif; -webkit-tap-highlight-color:transparent; user-select:none; }
@@ -15,19 +14,15 @@
         .status-dot { width:10px; height:10px; border-radius:50%; background:var(--danger); transition:0.5s; }
         .status-dot.connected { background:var(--neon); box-shadow:0 0 10px var(--neon); }
         .app-content { flex:1; overflow-y:auto; padding:20px; padding-bottom:80px; }
+        .input-row { display:flex; gap:10px; margin-bottom:20px; }
+        .ip-input { flex:1; padding:15px; border-radius:12px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:16px; }
+        .connect-btn { padding:15px; border-radius:12px; border:none; background:var(--neon); color:#000; font-weight:700; text-transform:uppercase; }
         .stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:20px; }
-        .stat-card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:15px; display:flex; flex-direction:column; align-items:center; backdrop-filter:blur(10px); }
+        .stat-card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:15px; display:flex; flex-direction:column; align-items:center; }
         .stat-card .label { font-size:11px; color:var(--muted); text-transform:uppercase; margin-top:10px; font-weight:700; }
-        .ring-wrapper { position:relative; width:90px; height:90px; }
-        .ring-val { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:22px; font-weight:700; }
-        .ring-val span { font-size:11px; color:var(--muted); }
-        .progress-ring { transform:rotate(-90deg); width:90px; height:90px; }
-        .ring-bg { fill:none; stroke:rgba(255,255,255,0.05); stroke-width:7; }
-        .ring-fill { fill:none; stroke-width:7; stroke-linecap:round; transition:stroke-dashoffset 0.5s ease; }
-        .chart-box { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:15px; height:200px; margin-bottom:20px; }
-        .chart-box h3 { font-size:12px; color:var(--muted); margin-bottom:10px; text-transform:uppercase; }
-        .bottom-nav { position:fixed; bottom:0; width:100%; background:#060d0a; border-top:1px solid var(--border); display:flex; justify-content:space-around; padding:10px 0; }
-        .nav-btn { background:none; border:none; color:var(--muted); font-size:12px; font-weight:700; text-transform:uppercase; display:flex; flex-direction:column; align-items:center; gap:4px; }
+        .stat-val { font-size:32px; font-weight:700; margin-top:5px; }
+        .bottom-nav { position:fixed; bottom:0; width:100%; background:#060d0a; border-top:1px solid var(--border); display:flex; justify-content:space-around; padding:15px 0; }
+        .nav-btn { background:none; border:none; color:var(--muted); font-size:12px; font-weight:700; text-transform:uppercase; }
         .nav-btn.active { color:var(--neon); }
         .view { display:none; } .view.active { display:block; }
         .ctrl-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
@@ -36,9 +31,6 @@
         .ctrl-btn.warn { background:var(--orange); color:#000; border-color:var(--orange); }
         .ctrl-btn.danger { background:var(--danger); color:#fff; border-color:var(--danger); }
         .ctrl-btn.locked { opacity:0.3; pointer-events:none; }
-        .input-row { display:flex; gap:10px; margin-bottom:20px; }
-        .ip-input { flex:1; padding:15px; border-radius:12px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:16px; }
-        .connect-btn { padding:15px; border-radius:12px; border:none; background:var(--neon); color:#000; font-weight:700; text-transform:uppercase; }
     </style>
 </head>
 <body>
@@ -57,12 +49,11 @@
                 <button id="connectBtn" class="connect-btn">CONNECT</button>
             </div>
             <div class="stat-grid">
-                <div class="stat-card"><div class="ring-wrapper"><svg class="progress-ring" width="90" height="90"><circle class="ring-bg" cx="45" cy="45" r="40"></circle><circle class="ring-fill" id="ring_temp" cx="45" cy="45" r="40" style="stroke:var(--orange); stroke-dasharray:251; stroke-dashoffset:251;"></circle></svg><div class="ring-val"><span id="temp">--</span><span>°C</span></div></div><div class="label">Air Temp</div></div>
-                <div class="stat-card"><div class="ring-wrapper"><svg class="progress-ring" width="90" height="90"><circle class="ring-bg" cx="45" cy="45" r="40"></circle><circle class="ring-fill" id="ring_hum" cx="45" cy="45" r="40" style="stroke:var(--neon); stroke-dasharray:251; stroke-dashoffset:251;"></circle></svg><div class="ring-val"><span id="hum">--</span><span>%</span></div></div><div class="label">Humidity</div></div>
-                <div class="stat-card"><div class="ring-wrapper"><svg class="progress-ring" width="90" height="90"><circle class="ring-bg" cx="45" cy="45" r="40"></circle><circle class="ring-fill" id="ring_soil" cx="45" cy="45" r="40" style="stroke:#2E8B57; stroke-dasharray:251; stroke-dashoffset:251;"></circle></svg><div class="ring-val"><span id="soil">--</span><span>%</span></div></div><div class="label">Soil Moist</div></div>
-                <div class="stat-card"><div class="ring-wrapper"><svg class="progress-ring" width="90" height="90"><circle class="ring-bg" cx="45" cy="45" r="40"></circle><circle class="ring-fill" id="ring_water" cx="45" cy="45" r="40" style="stroke:#00aaff; stroke-dasharray:251; stroke-dashoffset:251;"></circle></svg><div class="ring-val"><span id="water">--</span><span>%</span></div></div><div class="label">Water Tank</div></div>
+                <div class="stat-card"><div class="label">Air Temp</div><div class="stat-val" id="temp" style="color:var(--orange);">--</div></div>
+                <div class="stat-card"><div class="label">Humidity</div><div class="stat-val" id="hum" style="color:var(--neon);">--</div></div>
+                <div class="stat-card"><div class="label">Soil Moist</div><div class="stat-val" id="soil" style="color:#2E8B57;">--</div></div>
+                <div class="stat-card"><div class="label">Water Tank</div><div class="stat-val" id="water" style="color:#00aaff;">--</div></div>
             </div>
-            <div class="chart-box"><h3>Climate Trend</h3><canvas id="chartClimate"></canvas></div>
         </div>
 
         <div class="view" id="view-controls">
@@ -85,12 +76,11 @@
 
     <script>
         const $ = id => document.getElementById(id);
-        let ws, charts = {}, currentAutoMode = true;
+        let ws, currentAutoMode = true;
 
         function connectESP() {
             const ip = $('ipInput').value.trim();
             if (!ip) return alert("Enter ESP32 IP");
-            
             if (ws) ws.close();
             $('modeBadge').textContent = "CONNECTING...";
             ws = new WebSocket('ws://' + ip + ':81');
@@ -103,7 +93,6 @@
             ws.onmessage = (e) => {
                 const d = JSON.parse(e.data);
                 updateUI(d);
-                updateCharts(d);
             };
 
             ws.onclose = () => {
@@ -116,41 +105,22 @@
             if (ws && ws.readyState === 1) ws.send(JSON.stringify({ device, value }));
         }
 
-        function setRingProgress(id, val, max) {
-            const ring = $(id); if(!ring) return;
-            const c = 2 * Math.PI * 40; const p = Math.min(val/max, 1);
-            ring.style.strokeDashoffset = c * (1 - p);
-        }
-
         function updateUI(d) {
             currentAutoMode = d.auto;
             $('modeBadge').textContent = currentAutoMode ? 'AUTO' : 'MANUAL';
             $('modeBtn').textContent = currentAutoMode ? 'Switch to Manual' : 'Switch to Auto';
             $('modeBtn').className = 'ctrl-btn ' + (currentAutoMode ? 'on' : '');
             
-            $('temp').textContent = d.temperature.toFixed(1); setRingProgress('ring_temp', d.temperature, 50);
-            $('hum').textContent = d.humidity.toFixed(1); setRingProgress('ring_hum', d.humidity, 100);
-            $('soil').textContent = d.soil; setRingProgress('ring_soil', d.soil, 100);
-            $('water').textContent = d.water; setRingProgress('ring_water', d.water, 100);
+            $('temp').textContent = d.temperature.toFixed(1) + "°C";
+            $('hum').textContent = d.humidity.toFixed(1) + "%";
+            $('soil').textContent = d.soil + "%";
+            $('water').textContent = d.water + "%";
             
             $('fanBtn').textContent = `Fan: ${d.fan ? 'ON' : 'OFF'}`; $('fanBtn').className = 'ctrl-btn ' + (d.fan ? 'warn' : '') + (currentAutoMode ? ' locked' : '');
             $('pumpBtn').textContent = `Pump: ${d.pump ? 'ON' : 'OFF'}`; $('pumpBtn').className = 'ctrl-btn ' + (d.pump ? 'danger' : '') + (currentAutoMode ? ' locked' : '');
             $('lightsBtn').textContent = `Lights: ${d.lights ? 'ON' : 'OFF'}`; $('lightsBtn').className = 'ctrl-btn ' + (d.lights ? 'warn' : '') + (currentAutoMode ? ' locked' : '');
             $('heaterBtn').textContent = `Heater: ${d.heater ? 'ON' : 'OFF'}`; $('heaterBtn').className = 'ctrl-btn ' + (d.heater ? 'warn' : '') + (currentAutoMode ? ' locked' : '');
             $('ventBtn').textContent = `Vent: ${d.servo ? 'OPEN' : 'CLOSED'}`; $('ventBtn').className = 'ctrl-btn ' + (d.servo ? 'warn' : '') + (currentAutoMode ? ' locked' : '');
-        }
-
-        charts.climate = new Chart($('chartClimate').getContext('2d'), {
-            type: 'line', data: { labels: [], datasets: [{ label: 'Temp', data: [], borderColor: '#FF8C00', tension: .3, borderWidth: 2 }, { label: 'Hum', data: [], borderColor: '#39FF14', tension: .3, borderWidth: 2 }] },
-            options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { labels: { color: '#E0E0E0' } } }, scales: { x: { display: false }, y: { ticks: { color: '#7A9080' }, grid: { color: 'rgba(46,139,87,0.1)' } } } }
-        });
-
-        function updateCharts(d) {
-            if(charts.climate.data.labels.length > 30) { charts.climate.data.labels.shift(); charts.climate.data.datasets[0].data.shift(); charts.climate.data.datasets[1].data.shift(); }
-            charts.climate.data.labels.push('');
-            charts.climate.data.datasets[0].data.push(d.temperature);
-            charts.climate.data.datasets[1].data.push(d.humidity);
-            charts.climate.update('none');
         }
 
         document.querySelectorAll('.nav-btn').forEach(btn => btn.addEventListener('click', () => {
@@ -170,4 +140,5 @@
         }));
     </script>
 </body>
+</html>
 </html>
