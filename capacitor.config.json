@@ -1,0 +1,8 @@
+{
+  "appId": "com.hbrt.agro",
+  "appName": "HBRT AGRO",
+  "webDir": ".",
+  "server": {
+    "cleartext": true
+  }
+}
