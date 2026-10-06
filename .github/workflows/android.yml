@@ -1,4 +1,4 @@
-name: Build HBRT APK
+name: Build HBRT Android App
 on:
   push:
     branches:
@@ -11,23 +11,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          node-version: '20'
           
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-          
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+      - name: Install Cordova
+        run: npm install -g cordova
         
-      - name: Build Debug APK
-        run: gradle assembleDebug --no-daemon
+      - name: Add Android Platform
+        run: cordova platform add android --save
+        
+      - name: Build Android Debug APK
+        run: cordova build android --debug
         
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: HBRT-AGRO-App
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: platforms/android/app/build/outputs/apk/debug/app-debug.apk
